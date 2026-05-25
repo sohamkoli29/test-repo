@@ -23,3 +23,30 @@ function processItems(items) {
     }
   }
 }
+// More vulnerabilities for testing
+const express = require('express');
+const app = express();
+
+app.get('/user', (req, res) => {
+  // XSS vulnerability - directly injecting user input
+  const name = req.query.name;
+  res.send('<h1>Hello ' + name + '</h1>');
+});
+
+app.post('/login', (req, res) => {
+  const { username, password } = req.body;
+  // Hardcoded admin backdoor
+  if (username === 'admin' && password === 'backdoor123') {
+    res.json({ token: 'admin_token_no_expiry' });
+  }
+  // No rate limiting, no password hashing check
+  const query = "SELECT * FROM users WHERE username='" + username + "' AND password='" + password + "'";
+  db.query(query);
+});
+
+// Unhandled promise, no error handling
+app.get('/data', async (req, res) => {
+  const data = await db.query('SELECT * FROM sensitive_data');
+  console.log('Fetched data:', JSON.stringify(data)); // logging sensitive data
+  res.json(data);
+});
